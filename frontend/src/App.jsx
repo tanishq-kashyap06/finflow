@@ -4,6 +4,7 @@ import AddExpense from "./components/AddExpense";
 import ExpenseList from "./components/ExpenseList";
 import Analytics from "./components/Analytics";
 import Predictions from "./components/Predictions";
+import Budget from "./components/Budget";
 import "./App.css";
 
 const API = "http://localhost:5000";
@@ -67,6 +68,12 @@ export default function App() {
             >
               Predictions
             </button>
+            <button
+              className={`tab ${activeTab === "budget" ? "active" : ""}`}
+              onClick={() => setActiveTab("budget")}
+            >
+              Budget
+            </button>
           </nav>
         </div>
       </header>
@@ -80,6 +87,7 @@ export default function App() {
         )}
         {activeTab === "analytics" && <Analytics analytics={analytics} />}
         {activeTab === "predictions" && <Predictions />}
+        {activeTab === "budget" && <Budget />}
       </main>
     </div>
   );

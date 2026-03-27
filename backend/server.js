@@ -7,7 +7,7 @@ const cors = require("cors");
 
 const expenseRoutes = require("./routes/expenseRoutes.js");
 const analyticsRoutes = require("./routes/analyticsRoutes.js");
-
+const budgetRoutes = require("./routes/budgetRoutes.js");
 
 const app = express();
 
@@ -21,6 +21,7 @@ mongoose
 
 app.use("/expenses", expenseRoutes);
 app.use("/analytics", analyticsRoutes);
+app.use("/budgets", budgetRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend running");
