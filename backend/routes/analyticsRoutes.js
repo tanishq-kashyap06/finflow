@@ -45,5 +45,73 @@ router.get("/summary", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// GET /analytics/predictions
+router.get("/predictions", async (req, res) => {
+  try {
+    const expenses = await Expense.find({ userId: "user1" });
+
+    if (expenses.length === 0) {
+      return res.json({ message: "No data" });
+    }
+
+    // Group by month
+    const byMonth = {};
+    expenses.forEach((e) => {
+      const month = new Date(e.date).toISOString().slice(0, 7);
+      if (!byMonth[month]) byMonth[month] = {};
+      const cat = e.category.toLowerCase();
+      byMonth[month][cat] = (byMonth[month][cat] || 0) + e.amount;
+    });
+
+    const months = Object.keys(byMonth).sort();
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const lastMonth = months[months.length - 2];
+    const thisMonthData = byMonth[currentMonth] || {};
+    const lastMonthData = byMonth[lastMonth] || {};
+
+    // Projected end-of-month spend
+    const today = new Date();
+    const dayOfMonth = today.getDate();
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const thisMonthTotal = Object.values(thisMonthData).reduce((a, b) => a + b, 0);
+    const projectedTotal = Math.round((thisMonthTotal / dayOfMonth) * daysInMonth);
+
+    // Month-over-month by category
+    const allCategories = new Set([
+      ...Object.keys(thisMonthData),
+      ...Object.keys(lastMonthData),
+    ]);
+
+    const categoryTrends = [];
+    allCategories.forEach((cat) => {
+      const current = thisMonthData[cat] || 0;
+      const previous = lastMonthData[cat] || 0;
+      const change = previous > 0 ? Math.round(((current - previous) / previous) * 100) : null;
+      categoryTrends.push({ category: cat, current, previous, changePercent: change });
+    });
+
+    // Overspending alerts — categories up more than 20% vs last month
+    const alerts = categoryTrends
+      .filter((c) => c.changePercent !== null && c.changePercent > 20)
+      .map((c) => ({
+        category: c.category,
+        changePercent: c.changePercent,
+        current: c.current,
+        previous: c.previous,
+      }));
+
+    res.json({
+      currentMonth,
+      thisMonthTotal,
+      projectedTotal,
+      daysInMonth,
+      dayOfMonth,
+      categoryTrends: categoryTrends.sort((a, b) => (b.current || 0) - (a.current || 0)),
+      alerts,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;

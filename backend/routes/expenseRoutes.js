@@ -4,21 +4,34 @@ const Expense = require("../models/Expense");
 
 // CREATE EXPENSE
 router.post("/", async (req, res) => {
+  const { userId, amount, category, date } = req.body;
+
+  if (!userId || typeof userId !== "string" || userId.trim() === "") {
+    return res.status(400).json({ error: "userId is required" });
+  }
+  if (amount === undefined || isNaN(amount) || Number(amount) <= 0) {
+    return res.status(400).json({ error: "amount must be a positive number" });
+  }
+  if (!category || typeof category !== "string" || category.trim() === "") {
+    return res.status(400).json({ error: "category is required" });
+  }
+  if (date && isNaN(new Date(date).getTime())) {
+    return res.status(400).json({ error: "invalid date format" });
+  }
+
   try {
     const expense = new Expense({
-      userId: req.body.userId,
-      amount: req.body.amount,
-      category: req.body.category,
-      date: req.body.date || new Date()
+      userId: userId.trim(),
+      amount: Number(amount),
+      category: category.trim(),
+      date: date ? new Date(date) : new Date(),
     });
     const savedExpense = await expense.save();
     res.json(savedExpense);
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // GET ALL EXPENSES
 router.get("/", async (req, res) => {
@@ -29,7 +42,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // DELETE EXPENSE
 router.delete("/:id", async (req, res) => {

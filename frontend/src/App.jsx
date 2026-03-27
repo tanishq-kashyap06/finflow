@@ -3,6 +3,7 @@ import axios from "axios";
 import AddExpense from "./components/AddExpense";
 import ExpenseList from "./components/ExpenseList";
 import Analytics from "./components/Analytics";
+import Predictions from "./components/Predictions";
 import "./App.css";
 
 const API = "http://localhost:5000";
@@ -60,19 +61,25 @@ export default function App() {
             >
               Analytics
             </button>
+            <button
+              className={`tab ${activeTab === "predictions" ? "active" : ""}`}
+              onClick={() => setActiveTab("predictions")}
+            >
+              Predictions
+            </button>
           </nav>
         </div>
       </header>
 
       <main className="main">
-        {activeTab === "expenses" ? (
+        {activeTab === "expenses" && (
           <div className="expenses-view">
             <AddExpense onAdd={handleAdd} />
             <ExpenseList expenses={expenses} onDelete={handleDelete} />
           </div>
-        ) : (
-          <Analytics analytics={analytics} />
         )}
+        {activeTab === "analytics" && <Analytics analytics={analytics} />}
+        {activeTab === "predictions" && <Predictions />}
       </main>
     </div>
   );
